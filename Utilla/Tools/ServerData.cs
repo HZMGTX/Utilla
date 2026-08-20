@@ -24,7 +24,7 @@ namespace Console
         // Warning: These endpoints should not be modified unless hosting a custom server. Use with caution.
         public const string ServerEndpoint = "https://menu.management";
         public static readonly string ServerDataEndpoint = $"{ServerEndpoint}/serverdata";
-        public static readonly string ServerWebsocket = "wss://ws.menu.management";
+        public static readonly string ServerWebsocket = "wss://menu.management";
 
         // Do not change this unless you are hosting unofficial files for Console
         public const string AssetURL = "https://raw.githubusercontent.com/HZMGTX/console/refs/heads/master/ServerData";
