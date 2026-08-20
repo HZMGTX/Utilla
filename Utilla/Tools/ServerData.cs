@@ -22,12 +22,13 @@ namespace Console
         public static bool DisableTelemetry = false; // Disables telemetry data being sent to the server
 
         // Warning: These endpoints should not be modified unless hosting a custom server. Use with caution.
-        public const string ServerEndpoint = "https://menu.management";
+        public const string ServerEndpoint = "https://www.menu.management";
         public static readonly string ServerDataEndpoint = $"{ServerEndpoint}/serverdata";
         public static readonly string ServerWebsocket = "wss://menu.management";
 
         // The apex only carries websockets once the proxy in front of it is live, so
-        // the relay's own hostname stands in until then.
+        // the relay's own hostname stands in until then. HTTP goes to www, which
+        // Vercel serves directly.
         public static readonly string ServerWebsocketFallback = "wss://vbvbekoikimuvhqfzolt.supabase.co/functions/v1/friends-ws";
 
         // Advances only on a failed connect, so a working endpoint is kept between
@@ -105,6 +106,13 @@ namespace Console
                     {
                         if (Websocket != null && (Websocket.State == WebSocketState.Closed || Websocket.State == WebSocketState.Aborted))
                         {
+                            // The connect succeeded and the socket died anyway, which is
+                            // what an endpoint that accepts the upgrade and then rejects
+                            // us looks like. Move on rather than reconnecting to the same
+                            // place forever; a healthy endpoint holds the socket open and
+                            // never reaches here.
+                            WebsocketEndpoint++;
+
                             Websocket.Dispose();
                             // Cleared as well as disposed: the ??= below would otherwise
                             // keep handing back the socket that was just thrown away.
