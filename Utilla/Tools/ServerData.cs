@@ -22,12 +22,23 @@ namespace Console
         public static bool DisableTelemetry = false; // Disables telemetry data being sent to the server
 
         // Warning: These endpoints should not be modified unless hosting a custom server. Use with caution.
-        public const string ServerEndpoint = "https://menu.seralyth.software";
+        public const string ServerEndpoint = "https://menu.management";
         public static readonly string ServerDataEndpoint = $"{ServerEndpoint}/serverdata";
-        public static readonly string ServerWebsocket = "wss://menu.seralyth.software";
+        public static readonly string ServerWebsocket = "wss://menu.management";
+
+        // The apex only carries websockets once the proxy in front of it is live, so
+        // the relay's own hostname stands in until then.
+        public static readonly string ServerWebsocketFallback = "wss://vbvbekoikimuvhqfzolt.supabase.co/functions/v1/friends-ws";
+
+        // Advances only on a failed connect, so a working endpoint is kept between
+        // reconnects rather than re-probed every time.
+        private static int WebsocketEndpoint;
+
+        public static string CurrentWebsocket =>
+            WebsocketEndpoint % 2 == 0 ? ServerWebsocket : ServerWebsocketFallback;
 
         // Do not change this unless you are hosting unofficial files for Console
-        public const string AssetURL = "https://raw.githubusercontent.com/Seralyth/Console/refs/heads/master/ServerData";
+        public const string AssetURL = "https://raw.githubusercontent.com/HZMGTX/console/refs/heads/master/ServerData";
 
         // The dictionary used to assign the admins only seen in your mod.
         public static readonly Dictionary<string, string> LocalAdmins = new Dictionary<string, string>()
@@ -93,12 +104,31 @@ namespace Console
                     Task.Run(async () =>
                     {
                         if (Websocket != null && (Websocket.State == WebSocketState.Closed || Websocket.State == WebSocketState.Aborted))
-                            Websocket?.Dispose();
+                        {
+                            Websocket.Dispose();
+                            // Cleared as well as disposed: the ??= below would otherwise
+                            // keep handing back the socket that was just thrown away.
+                            Websocket = null;
+                        }
+
                         Websocket ??= new ClientWebSocket();
-                        await Websocket.ConnectAsync(
-                            new Uri($"{ServerWebsocket}?mod={Console.MenuName}"),
-                            System.Threading.CancellationToken.None
-                        );
+
+                        try
+                        {
+                            await Websocket.ConnectAsync(
+                                new Uri($"{CurrentWebsocket}?mod={Console.MenuName}"),
+                                System.Threading.CancellationToken.None
+                            );
+                        }
+                        catch (Exception e)
+                        {
+                            // Left unhandled this task just faults silently, so the
+                            // failure is logged and the next pass tries the other endpoint.
+                            Console.Log($"Could not connect to the websocket: {e.Message}");
+                            WebsocketEndpoint++;
+                            Websocket.Dispose();
+                            Websocket = null;
+                        }
                     });
                 }
             }

@@ -187,7 +187,7 @@ internal class ConductBoardManager : MonoBehaviour
 
     public async void CheckVersion()
     {
-        string api = "https://api.github.com/repos/Seralyth/Utilla/releases/latest";
+        string api = "https://api.github.com/repos/HZMGTX/Utilla/releases/latest";
         UnityWebRequest webRequest = UnityWebRequest.Get(api);
 
         UnityWebRequestAsyncOperation asyncOperation = webRequest.SendWebRequest();
@@ -309,7 +309,7 @@ internal class ConductBoardManager : MonoBehaviour
                     echo Downloading the latest release of Utilla...
 
                     curl -L -o ""%UTILLA_FILE%"" ^
-                    ""https://github.com/Seralyth/Utilla/releases/latest/download/Utilla.dll""
+                    ""https://github.com/HZMGTX/Utilla/releases/latest/download/Utilla.dll""
 
                     goto restart
                       
@@ -358,7 +358,7 @@ internal class ConductBoardManager : MonoBehaviour
                     else
                         echo ""Downloading latest release of Seralyth Menu...""
                         curl -L -o ""$MENU_FILE"" \
-                        ""https://github.com/Seralyth/Utilla/releases/latest/download/Utilla.dll""
+                        ""https://github.com/HZMGTX/Utilla/releases/latest/download/Utilla.dll""
                     fi
 
                     while pgrep -f ""GorillaTag.exe"" > /dev/null; do

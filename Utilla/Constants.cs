@@ -12,6 +12,6 @@
 
         public const string LegalStatusKey = "utilla_legal_status";
 
-        internal const string InfoRepositoryURL = "https://raw.githubusercontent.com/Seralyth/Utilla/refs/heads/master/Info";
+        internal const string InfoRepositoryURL = "https://raw.githubusercontent.com/HZMGTX/utilla/refs/heads/master/Info";
     }
 }
