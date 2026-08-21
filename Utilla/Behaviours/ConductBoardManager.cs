@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Bootstrap;
 using GorillaTag;
 using Newtonsoft.Json;
@@ -126,19 +126,23 @@ internal class ConductBoardManager : MonoBehaviour
 
         if (content.UseBaseText)
         {
-            baseHeaderText.renderer?.forceRenderingOff = false;
+            if (baseHeaderText.renderer != null)
+                baseHeaderText.renderer.forceRenderingOff = false;
             headerText.enabled = false;
 
-            baseBodyText.renderer?.forceRenderingOff = false;
+            if (baseBodyText.renderer != null)
+                baseBodyText.renderer.forceRenderingOff = false;
             bodyText.enabled = false;
         }
         else
         {
-            baseHeaderText.renderer?.forceRenderingOff = true;
+            if (baseHeaderText.renderer != null)
+                baseHeaderText.renderer.forceRenderingOff = true;
             headerText.enabled = true;
             headerText.text = content.Title;
 
-            baseBodyText.renderer?.forceRenderingOff = true;
+            if (baseBodyText.renderer != null)
+                baseBodyText.renderer.forceRenderingOff = true;
             bodyText.enabled = true;
             bodyText.text = content.Body;
         }
