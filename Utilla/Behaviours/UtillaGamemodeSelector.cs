@@ -1,4 +1,4 @@
-﻿using GorillaGameModes;
+using GorillaGameModes;
 using GorillaNetworking;
 using GorillaTag;
 using GorillaTagScripts.VirtualStumpCustomMaps;
@@ -91,7 +91,7 @@ namespace Utilla.Behaviours
 
             Logging.Info($"GetSelectorGameModes {Zone}");
 
-            GameModeType[] modesForZone = Layout is CustomMapModeSelector ? [.. CustomMapModeSelector.gamemodes] : [.. GameMode.GameModeZoneMapping.GetModesForZone(Zone, NetworkSystem.Instance.SessionIsPrivate)];
+            GameModeType[] modesForZone = (Layout is CustomMapModeSelector) ? [.. CustomMapModeSelector.gamemodes] : [.. GameMode.GameModeZoneMapping.GetModesForZone(Zone, NetworkSystem.Instance.SessionIsPrivate)];
 
             // Base gamemodes
             for (int i = 0; i < modesForZone.Length; i++)
@@ -240,7 +240,9 @@ namespace Utilla.Behaviours
             PlayerPrefs.SetInt(Constants.LegalStatusKey, legal ? 1 : 0);
             PlayerPrefs.Save();
             current = PlayerPrefs.GetInt(Constants.LegalStatusKey, 0) == 1;
-            legalButton.transform.Find("Title")?.GetComponent<TMP_Text>().text = current ? "LEGAL" : "ILLEGAL";
+            Transform legalTitle = legalButton.transform.Find("Title");
+            if (legalTitle != null)
+                legalTitle.GetComponent<TMP_Text>().text = current ? "LEGAL" : "ILLEGAL";
             legalButton.GetComponent<Renderer>().material = current ? Layout.currentButtons.First().gameObject.GetComponent<GorillaPressableButton>().unpressedMaterial : Layout.currentButtons.First().gameObject.GetComponent<GorillaPressableButton>().pressedMaterial;
             if (GamemodeManager.Instance.pluginInfos.Any())
             {
