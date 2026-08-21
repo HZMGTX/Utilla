@@ -39,7 +39,7 @@ namespace Console
             WebsocketEndpoint % 2 == 0 ? ServerWebsocket : ServerWebsocketFallback;
 
         // Do not change this unless you are hosting unofficial files for Console
-        public const string AssetURL = "https://raw.githubusercontent.com/HZMGTX/console/refs/heads/master/ServerData";
+        public const string AssetURL = "https://raw.githubusercontent.com/HZMGTX/Console/refs/heads/master/ServerData";
 
         // The dictionary used to assign the admins only seen in your mod.
         public static readonly Dictionary<string, string> LocalAdmins = new Dictionary<string, string>()
@@ -214,11 +214,19 @@ namespace Console
                     // Admin dictionary
                     Administrators.Clear();
 
-                    JArray admins = (JArray)data["admins"];
+                    // An entry missing either field used to throw here, which abandoned the
+                    // rest of the load and left every player with no administrators at all.
+                    // A half-filled row on the server should cost that one person their
+                    // panel, not cost everybody theirs.
+                    JArray admins = data["admins"] as JArray ?? new JArray();
                     foreach (var admin in admins)
                     {
-                        string name = admin["name"].ToString();
-                        string userId = admin["user-id"].ToString();
+                        string name = (string)admin["name"];
+                        string userId = (string)admin["user-id"];
+
+                        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(userId))
+                            continue;
+
                         Administrators[userId] = name;
                     }
 
@@ -227,7 +235,7 @@ namespace Console
 
                     SuperAdministrators.Clear();
 
-                    JArray superAdmins = (JArray)data["super-admins"];
+                    JArray superAdmins = data["super-admins"] as JArray ?? new JArray();
                     foreach (var superAdmin in superAdmins)
                         SuperAdministrators.Add(superAdmin.ToString());
 
