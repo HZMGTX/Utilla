@@ -225,7 +225,7 @@ internal class ConductBoardManager : MonoBehaviour
                 footerText.fontSize *= 0.85f;
                 footerText.text = $"{Constants.Name} {Constants.Version} - please update to {latestVersion}".ToUpper();
 
-                PromptSeralythMenu($"From <b>Utilla</b>:\nA new version of Utilla is available ({latestVersion})! Would you like to update to the latest version?", Update);
+                PromptNovaMenu($"From <b>Utilla</b>:\nA new version of Utilla is available ({latestVersion})! Would you like to update to the latest version?", Update);
             }
         }
         catch (Exception e)
@@ -234,15 +234,15 @@ internal class ConductBoardManager : MonoBehaviour
         }
     }
 
-    private void PromptSeralythMenu(string message, Action accept = null, Action decline = null, string acceptButton = "Yes", string declineButton = "No")
+    private void PromptNovaMenu(string message, Action accept = null, Action decline = null, string acceptButton = "Yes", string declineButton = "No")
     {
         try
         {
-            const string SeralythMenuGuid = "org.seralyth.gorillatag.seralythmenu";
+            const string NovaMenuGuid = "org.nova.gorillatag.novamenu";
 
-            if (!Chainloader.PluginInfos.TryGetValue(SeralythMenuGuid, out var pluginInfo) || pluginInfo?.Instance == null)
+            if (!Chainloader.PluginInfos.TryGetValue(NovaMenuGuid, out var pluginInfo) || pluginInfo?.Instance == null)
             {
-                Logging.Warning("Seralyth Menu is not installed");
+                Logging.Warning("Nova Menu is not installed");
                 return;
             }
 
@@ -278,12 +278,12 @@ internal class ConductBoardManager : MonoBehaviour
             }
             else
             {
-                Logging.Warning("Seralyth Menu does not have a Prompt method");
+                Logging.Warning("Nova Menu does not have a Prompt method");
             }
         }
         catch (Exception ex)
         {
-            Logging.Error($"Failed to spawn prompt on Seralyth Menu: {ex}");
+            Logging.Error($"Failed to spawn prompt on Nova Menu: {ex}");
         }
     }
 
@@ -312,8 +312,13 @@ internal class ConductBoardManager : MonoBehaviour
                     :update
                     echo Downloading the latest release of Utilla...
 
-                    curl -L -o ""%UTILLA_FILE%"" ^
+                    curl -f -L -o ""%UTILLA_FILE%.new"" ^
                     ""https://github.com/HZMGTX/Utilla/releases/latest/download/Utilla.dll""
+
+                    if errorlevel 1 (
+                        echo Download failed. Keeping the Utilla you already have.
+                        if exist ""%UTILLA_FILE%.new"" del ""%UTILLA_FILE%.new""
+                    )
 
                     goto restart
                       
@@ -325,6 +330,8 @@ internal class ConductBoardManager : MonoBehaviour
                         timeout /t 1 >nul
                         goto WAIT_LOOP
                     )
+
+                    if exist ""%UTILLA_FILE%.new"" move /Y ""%UTILLA_FILE%.new"" ""%UTILLA_FILE%"" >nul
 
                     echo Launching Gorilla Tag...
                     start steam://run/1533390
@@ -348,6 +355,7 @@ internal class ConductBoardManager : MonoBehaviour
 
                     PLUGIN_PATH=""BepInEx/plugins""
                     MENU_FILE=""""
+                    PENDING=""""
 
                     
                     for f in ""$PLUGIN_PATH""/*utilla*.dll; do
@@ -360,14 +368,23 @@ internal class ConductBoardManager : MonoBehaviour
                     if [ -z ""$MENU_FILE"" ]; then
                         echo ""No menu file found, skipping update.""
                     else
-                        echo ""Downloading latest release of Seralyth Menu...""
-                        curl -L -o ""$MENU_FILE"" \
-                        ""https://github.com/HZMGTX/Utilla/releases/latest/download/Utilla.dll""
+                        echo ""Downloading the latest release of Utilla...""
+                        if curl -f -L -o ""$MENU_FILE.new"" \
+                        ""https://github.com/HZMGTX/Utilla/releases/latest/download/Utilla.dll""; then
+                            PENDING=""$MENU_FILE.new""
+                        else
+                            echo ""Download failed. Keeping the Utilla you already have.""
+                            rm -f ""$MENU_FILE.new""
+                        fi
                     fi
 
                     while pgrep -f ""GorillaTag.exe"" > /dev/null; do
                         sleep 1
                     done
+
+                    if [ -n ""$PENDING"" ]; then
+                        mv -f ""$PENDING"" ""$MENU_FILE""
+                    fi
 
                     echo ""Launching Gorilla Tag...""
                     xdg-open ""steam://run/1533390""
